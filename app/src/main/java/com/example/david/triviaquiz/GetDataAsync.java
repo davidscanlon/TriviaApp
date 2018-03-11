@@ -1,6 +1,9 @@
 package com.example.david.triviaquiz;
 
+import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
@@ -17,11 +20,23 @@ import java.util.ArrayList;
  * Created by David on 3/8/18.
  */
 
-public class GetDataAsync extends AsyncTask<String, Void, ArrayList<Question>> {
+public class GetDataAsync extends AsyncTask<String, Integer, ArrayList<Question>> {
+
+    ProgressDialog pd;
+    static String QUESTION_ARRAY = "";
+
+    public void sendData(ArrayList<Question> questions) {
+
+    }
+
+    @Override
+    protected void onPreExecute() {
+        //pd = new ProgressDialog(MainActivity.class);
+    }
 
     @Override
     protected void onPostExecute(ArrayList<Question> questions) {
-        super.onPostExecute(questions);
+        sendData(questions);
     }
 
     @Override
@@ -36,14 +51,20 @@ public class GetDataAsync extends AsyncTask<String, Void, ArrayList<Question>> {
                 String json = IOUtils.toString(connection.getInputStream(), "UTF-8");
 
                 JSONObject root = new JSONObject(json);
-                JSONArray sources = root.getJSONArray("sources");
+                JSONArray questions = root.getJSONArray("questions");
 
-                for (int i = 0; i < sources.length(); i++) {
-                    JSONObject sourceJson = sources.getJSONObject(i);
+                for (int i = 0; i < questions.length(); i++) {
+                    JSONObject questionJson = questions.getJSONObject(i);
                     Question question = new Question();
-                    source.setId(sourceJson.getString("id"));
-                    source.setName(sourceJson.getString("name"));
-
+                    question.setId(questionJson.getString("id"));
+                    question.setText(questionJson.getString("text"));
+                    //TODO: Get that image
+                    JSONObject choicesJson = questionJson.getJSONObject("choices");
+                    JSONArray choicesArray = choicesJson.getJSONArray("choice");
+                    question.setAnswer(choicesJson.getString("answer"));
+                    for (int j = 0; j < choicesArray.length(); j++) {
+                        question.addAnswerChoice(choicesArray.getString(j));
+                    }
                     result.add(question);
                 }
 
