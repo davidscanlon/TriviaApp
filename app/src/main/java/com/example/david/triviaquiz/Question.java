@@ -42,7 +42,9 @@ public class Question implements Parcelable {
     };
 
     public void addAnswerChoice(String choice) {
-        answerChoices.add(choice);
+        if (choice != null) {
+            answerChoices.add(choice);
+        }
     }
 
     public ArrayList<String> getAnswerChoices() {

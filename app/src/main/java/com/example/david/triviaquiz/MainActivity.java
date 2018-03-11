@@ -7,6 +7,10 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.apache.commons.io.IOUtils;
@@ -22,10 +26,33 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
+    ArrayList<Question> questionList = new ArrayList<Question>();
+    Button exitButton;
+    Button startButton;
+    TextView readyText;
+    ImageView triviaImage;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        exitButton = findViewById(R.id.button_exit);
+        exitButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                System.exit(0);
+            }
+        });
+        
+        startButton = findViewById(R.id.button_startTrivia);
+        startButton.setEnabled(false);
+        readyText = findViewById(R.id.textView_ready);
+        readyText.setVisibility(View.INVISIBLE);
+        triviaImage = findViewById(R.id.imageView_trivia);
+        triviaImage.setVisibility(View.INVISIBLE);
+
 
         if (isConnected()) {
             new GetDataAsync().execute("http://dev.theappsdr.com/apis/trivia_json/index.php");
@@ -36,8 +63,6 @@ public class MainActivity extends AppCompatActivity {
 
 
     } // end onCreate
-
-
 
 
     private boolean isConnected() {
@@ -53,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
     } //end isConnected
 
     public void sendData(ArrayList<Question> questions) {
-
+        questionList = questions;
     }
 
     public class GetDataAsync extends AsyncTask<String, Integer, ArrayList<Question>> {
@@ -74,6 +99,9 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(ArrayList<Question> questions) {
             sendData(questions);
             pd.dismiss();
+            startButton.setEnabled(true);
+            readyText.setVisibility(View.VISIBLE);
+            triviaImage.setVisibility(View.VISIBLE);
         }
 
         @Override
@@ -101,11 +129,12 @@ public class MainActivity extends AppCompatActivity {
                         question.setId(questionJson.getString("id"));
                         question.setText(questionJson.getString("text"));
                         //TODO: Get that image
-                        JSONObject choicesJson = questionJson.getJSONObject("choices");
-                        JSONArray choicesArray = choicesJson.getJSONArray("choice");
-                        question.setAnswer(choicesJson.getString("answer"));
+                        //JSONObject choicesJson = questionJson.getJSONObject("choices");
+                        JSONArray choicesArray = questionJson.getJSONArray("choice");
+                        question.setAnswer(questionJson.getString("answer"));
+
                         for (int j = 0; j < choicesArray.length(); j++) {
-                            publishProgress(j);
+                            //publishProgress(j);
                             question.addAnswerChoice(choicesArray.getString(j));
                         }
                         result.add(question);
